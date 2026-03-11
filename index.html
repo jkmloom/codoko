@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Codoko — Coding Community</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:        #f4fdf6;
+      --surface:   #ffffff;
+      --green:     #18a84a;
+      --green-mid: #22c55e;
+      --green-lt:  #bbf7d0;
+      --green-xs:  #e8fdf0;
+      --ink:       #0d1f14;
+      --ink-2:     #3d5c47;
+      --ink-3:     #7aaa8a;
+      --border:    #c6ebd4;
+      --yellow:    #fbbf24;
+      --blue:      #60a5fa;
+      --pink:      #f472b6;
+      --font-head: 'Fredoka', sans-serif;
+      --font-body: 'Quicksand', sans-serif;
+      --font-code: 'Fira Code', monospace;
+      --radius-sm: 12px;
+      --radius:    20px;
+      --radius-lg: 32px;
+      --card-shadow: 4px 4px 0px var(--green);
+      --card-shadow-hover: 6px 6px 0px var(--green);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ─── UTILITY ─────────────────────────────── */
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 2rem; }
+
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--font-code); font-size: 0.68rem;
+      background: var(--green-xs); color: var(--green);
+      border: 1.5px solid var(--green-lt); border-radius: 100px;
+      padding: 3px 11px; font-weight: 500; letter-spacing: 0.03em;
+    }
+    .chip.yellow { background:#fefce8; color:#92400e; border-color:#fde68a; }
+    .chip.blue   { background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; }
+    .chip.pink   { background:#fdf2f8; color:#9d174d; border-color:#fbcfe8; }
+
+    .section-eyebrow {
+      font-family: var(--font-code); font-size: 0.72rem; color: var(--green);
+      letter-spacing: 0.12em; text-transform: uppercase; font-weight: 500;
+      display: flex; align-items: center; gap: 8px; margin-bottom: 0.4rem;
+    }
+    .section-eyebrow::before {
+      content:''; width:20px; height:2px; background:var(--green);
+      border-radius:2px; flex-shrink:0;
+    }
+
+    h2.section-title {
+      font-family: var(--font-head); font-size: clamp(2rem,5vw,3rem);
+      font-weight: 700; color: var(--ink); line-height: 1.15; letter-spacing: 0em;
+    }
+
+    /* ─── SCROLL REVEAL ────────────────────────── */
+    .reveal {
+      opacity:0; transform:translateY(28px);
+      transition: opacity 0.65s cubic-bezier(.22,1,.36,1), transform 0.65s cubic-bezier(.22,1,.36,1);
+    }
+    .reveal.visible { opacity:1; transform:translateY(0); }
+    .reveal-delay-1 { transition-delay:0.08s; }
+    .reveal-delay-2 { transition-delay:0.16s; }
+    .reveal-delay-3 { transition-delay:0.24s; }
+    .reveal-delay-4 { transition-delay:0.32s; }
+
+    /* ─── NAV ──────────────────────────────────── */
+    nav {
+      position:fixed; top:0; left:0; right:0; z-index:200;
+      padding:0 2rem; height:66px;
+      display:flex; align-items:center; justify-content:space-between;
+      background:rgba(244,253,246,0.88);
+      backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+      border-bottom:1.5px solid var(--border);
+      transition:box-shadow 0.3s;
+    }
+    nav.scrolled { box-shadow:0 4px 24px rgba(0,0,0,0.05); }
+    .nav-logo img { height:30px; display:block; }
+    .nav-links { list-style:none; display:flex; gap:2rem; }
+    .nav-links a {
+      font-family:var(--font-body); font-size:0.9rem; font-weight:600;
+      color:var(--ink-2); text-decoration:none; position:relative; transition:color 0.2s;
+    }
+    .nav-links a::after {
+      content:''; position:absolute; left:0; bottom:-3px;
+      width:0; height:2px; background:var(--green); border-radius:2px;
+      transition:width 0.25s cubic-bezier(.22,1,.36,1);
+    }
+    .nav-links a:hover { color:var(--green); }
+    .nav-links a:hover::after { width:100%; }
+    .nav-cta {
+      font-family:var(--font-body); font-weight:700; font-size:0.88rem;
+      background:var(--green); color:#fff; border-radius:var(--radius-sm);
+      padding:9px 20px; text-decoration:none; display:inline-block;
+      border:2px solid var(--green); box-shadow:3px 3px 0 var(--ink);
+      transition:transform 0.15s, box-shadow 0.15s;
+    }
+    .nav-cta:hover { transform:translate(-1px,-1px); box-shadow:5px 5px 0 var(--ink); }
+
+    /* ─── HERO ─────────────────────────────────── */
+    #hero {
+      min-height:100vh; display:flex; align-items:center;
+      padding:100px 2rem 5rem; position:relative; overflow:hidden;
+    }
+
+    /* Blobs */
+    .blob {
+      position:absolute; border-radius:50%; filter:blur(64px);
+      pointer-events:none; animation:blobdrift 9s ease-in-out infinite alternate;
+    }
+    .blob-1 { width:520px; height:520px; background:rgba(187,247,208,0.55); top:-140px; right:-100px; animation-duration:9s; }
+    .blob-2 { width:400px; height:400px; background:rgba(251,191,36,0.1); bottom:-80px; left:-140px; animation-duration:12s; animation-delay:-3s; }
+    .blob-3 { width:280px; height:280px; background:rgba(96,165,250,0.08); top:40%; right:6%; animation-duration:14s; animation-delay:-6s; }
+    @keyframes blobdrift {
+      from { transform:translate(0,0) scale(1); }
+      to   { transform:translate(18px,18px) scale(1.06); }
+    }
+
+    /* Particle container */
+    #hero-particles {
+      position:absolute; inset:0; pointer-events:none; z-index:1; overflow:hidden;
+    }
+    .hero-particle {
+      position:absolute; bottom:-40px;
+      font-family:var(--font-code); color:var(--green);
+      animation:particleRise linear forwards;
+      user-select:none; pointer-events:none;
+    }
+    @keyframes particleRise {
+      0%   { transform:translateY(0) rotate(0deg);   opacity:var(--op); }
+      85%  { opacity:var(--op); }
+      100% { transform:translateY(-105vh) rotate(25deg); opacity:0; }
+    }
+
+    /* Sparkle stars */
+    .sparkle-star {
+      position:absolute; pointer-events:none; z-index:1;
+      animation:sparklePop ease-out forwards;
+      font-size:14px; color:var(--yellow);
+    }
+    @keyframes sparklePop {
+      0%   { transform:scale(0) rotate(0deg);   opacity:0; }
+      25%  { transform:scale(1.3) rotate(45deg); opacity:1; }
+      100% { transform:scale(0.6) rotate(90deg); opacity:0; }
+    }
+
+    /* Hero layout: 2 columns on desktop */
+    .hero-layout {
+      max-width:1080px; margin:0 auto; width:100%;
+      display:grid; grid-template-columns:1fr 1fr;
+      align-items:center; gap:3rem; position:relative; z-index:2;
+    }
+
+    .hero-text { text-align:left; }
+
+    .hero-badge {
+      display:inline-flex; align-items:center; gap:8px;
+      background:var(--surface); border:1.5px solid var(--border);
+      border-radius:100px; padding:6px 16px 6px 8px;
+      font-family:var(--font-code); font-size:0.72rem; color:var(--ink-2);
+      margin-bottom:2rem;
+      box-shadow:0 2px 16px rgba(0,0,0,0.05);
+      animation:fadedown 0.7s cubic-bezier(.22,1,.36,1) both;
+    }
+    .hero-badge-dot {
+      width:8px; height:8px; background:var(--green-mid);
+      border-radius:50%; animation:pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { box-shadow:0 0 0 0 rgba(34,197,94,0.45); }
+      50%      { box-shadow:0 0 0 6px rgba(34,197,94,0); }
+    }
+    @keyframes fadedown {
+      from { opacity:0; transform:translateY(-14px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    .hero-headline {
+      font-family:var(--font-head); font-size:clamp(2.2rem,5.5vw,3.6rem);
+      font-weight:700; color:var(--ink); line-height:1.15;
+      letter-spacing:0.01em; margin-bottom:1.2rem;
+      animation:fadein 0.8s cubic-bezier(.22,1,.36,1) 0.3s both;
+    }
+    .hero-headline em {
+      font-style:normal; color:var(--green); position:relative;
+    }
+    .hero-headline em::after {
+      content:''; position:absolute; left:0; bottom:3px;
+      width:100%; height:7px; background:var(--green-lt); z-index:-1; border-radius:3px;
+    }
+
+    .hero-sub {
+      font-size:1rem; color:var(--ink-2); max-width:460px;
+      margin:0 0 2.5rem 0; line-height:1.75; font-weight:500;
+      animation:fadein 0.8s cubic-bezier(.22,1,.36,1) 0.45s both;
+    }
+    @keyframes fadein {
+      from { opacity:0; transform:translateY(18px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    .hero-btns {
+      display:flex; gap:1rem; justify-content:flex-start; flex-wrap:wrap;
+      animation:fadein 0.8s cubic-bezier(.22,1,.36,1) 0.6s both;
+    }
+
+    /* Hero character column */
+    .hero-art {
+      display:flex; justify-content:center; align-items:center;
+      animation:fadein 1s cubic-bezier(.22,1,.36,1) 0.4s both;
+    }
+
+    /* Floating shapes (kept from before) */
+    .float-shape {
+      position:absolute; pointer-events:none;
+      animation:floatup 7s ease-in-out infinite alternate;
+    }
+    @keyframes floatup {
+      from { transform:translateY(0) rotate(0deg); }
+      to   { transform:translateY(-14px) rotate(8deg); }
+    }
+    .shape-diamond { width:22px; height:22px; background:var(--green-lt); border:2px solid var(--green); transform:rotate(45deg); border-radius:3px; }
+    .shape-circle  { width:18px; height:18px; background:#fde68a; border:2px solid #f59e0b; border-radius:50%; }
+    .shape-square  { width:16px; height:16px; background:#bfdbfe; border:2px solid #3b82f6; border-radius:4px; }
+
+    /* ─── BUTTONS ───────────────────────────────── */
+    .btn {
+      font-family:var(--font-body); font-weight:700; font-size:0.95rem;
+      padding:12px 26px; border-radius:var(--radius-sm);
+      text-decoration:none; border:2px solid transparent;
+      transition:transform 0.15s, box-shadow 0.15s; display:inline-block; cursor:pointer;
+    }
+    .btn-solid { background:var(--green); color:#fff; border-color:var(--green); box-shadow:4px 4px 0 var(--ink); }
+    .btn-solid:hover { transform:translate(-2px,-2px); box-shadow:6px 6px 0 var(--ink); }
+    .btn-outline { background:transparent; color:var(--ink); border-color:var(--border); box-shadow:4px 4px 0 var(--border); }
+    .btn-outline:hover { border-color:var(--green); color:var(--green); box-shadow:4px 4px 0 var(--green-lt); transform:translate(-2px,-2px); }
+
+    /* ─── MARQUEE ───────────────────────────────── */
+    .marquee-wrap {
+      overflow:hidden; border-top:1.5px solid var(--border);
+      border-bottom:1.5px solid var(--border); background:var(--surface); padding:14px 0;
+    }
+    .marquee-track {
+      display:flex; width:max-content;
+      animation:marquee 30s linear infinite; gap:2.5rem;
+    }
+    .marquee-item {
+      display:flex; align-items:center; gap:0.5rem;
+      font-family:var(--font-code); font-size:0.78rem;
+      color:var(--ink-3); white-space:nowrap; font-weight:500;
+    }
+    .marquee-item span { color:var(--green); }
+    @keyframes marquee {
+      from { transform:translateX(0); }
+      to   { transform:translateX(-50%); }
+    }
+
+    /* ─── CHARACTER GENERIC ─────────────────────── */
+    .char-float {
+      animation:charFloat 4s ease-in-out infinite alternate;
+    }
+    @keyframes charFloat {
+      from { transform:translateY(0); }
+      to   { transform:translateY(-12px); }
+    }
+    .char-float-slow { animation:charFloat 5.5s ease-in-out infinite alternate; }
+    .char-float-med  { animation:charFloat 4.5s ease-in-out 0.5s infinite alternate; }
+
+    /* Section char decorations (absolute positioned) */
+    .section-char-wrap {
+      position:relative;
+    }
+    .section-char-abs {
+      position:absolute;
+      pointer-events:none;
+    }
+
+    /* ─── ABOUT ─────────────────────────────────── */
+    #about { padding:7rem 0; }
+    .about-grid {
+      display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; margin-top:3rem;
+    }
+    .about-card {
+      background:var(--surface); border:2px solid var(--border);
+      border-radius:var(--radius); padding:1.8rem;
+      box-shadow:var(--card-shadow); transition:transform 0.2s, box-shadow 0.2s;
+      position:relative; overflow:hidden;
+    }
+    .about-card::before {
+      content:''; position:absolute; top:0; left:0;
+      width:100%; height:4px; background:var(--green);
+    }
+    .about-card:hover { transform:translate(-2px,-2px); box-shadow:var(--card-shadow-hover); }
+    .card-icon-wrap {
+      width:48px; height:48px; background:var(--green-xs);
+      border:1.5px solid var(--green-lt); border-radius:14px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.4rem; margin-bottom:1rem;
+    }
+    .about-card h3 { font-family:var(--font-head); font-size:1.2rem; font-weight:600; color:var(--ink); margin-bottom:0.5rem; }
+    .about-card p  { font-size:0.9rem; color:var(--ink-2); line-height:1.7; }
+
+    /* Stats */
+    .stats-strip {
+      display:grid; grid-template-columns:repeat(4,1fr); gap:1.2rem; margin-top:5rem;
+    }
+    .stat-tile {
+      background:var(--surface); border:2px solid var(--border);
+      border-radius:var(--radius); padding:1.5rem 1rem; text-align:center;
+      box-shadow:3px 3px 0 var(--green-lt); transition:transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-tile:hover { transform:translate(-2px,-2px); box-shadow:5px 5px 0 var(--green-lt); }
+    .stat-num {
+      font-family:var(--font-head); font-size:2rem; font-weight:700;
+      color:var(--green); display:block;
+    }
+    .stat-label { font-size:0.76rem; color:var(--ink-3); margin-top:4px; font-weight:600; }
+
+    /* ─── PROJECTS ──────────────────────────────── */
+    #projects { padding:7rem 0; }
+    .projects-grid {
+      display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr));
+      gap:1.2rem; margin-top:3rem;
+    }
+    .project-card {
+      background:var(--surface); border:2px solid var(--border);
+      border-radius:var(--radius); overflow:hidden;
+      box-shadow:var(--card-shadow); transition:transform 0.2s, box-shadow 0.2s;
+    }
+    .project-card:hover { transform:translate(-2px,-2px); box-shadow:var(--card-shadow-hover); }
+    .project-thumb {
+      height:130px; background:var(--green-xs); display:flex;
+      align-items:center; justify-content:center; font-size:3rem;
+      border-bottom:2px solid var(--border); position:relative; overflow:hidden;
+    }
+    .project-thumb::after {
+      content:''; position:absolute; inset:0;
+      background:repeating-linear-gradient(45deg,transparent,transparent 12px,rgba(187,247,208,0.35) 12px,rgba(187,247,208,0.35) 13px);
+    }
+    .project-body { padding:1.4rem; }
+    .project-body h3 { font-family:var(--font-head); font-size:1.05rem; font-weight:700; color:var(--ink); margin:0.6rem 0 0.4rem; }
+    .project-body p  { font-size:0.87rem; color:var(--ink-2); line-height:1.65; margin-bottom:1rem; }
+    .project-chips { display:flex; flex-wrap:wrap; gap:0.4rem; }
+
+    /* ─── ARTICLES ──────────────────────────────── */
+    #articles { padding:7rem 0; background:var(--surface); }
+    .articles-header {
+      display:flex; align-items:flex-end; justify-content:space-between;
+      flex-wrap:wrap; gap:1rem; margin-bottom:3rem;
+    }
+    .articles-cols { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; }
+    .article-card {
+      background:var(--bg); border:2px solid var(--border);
+      border-radius:var(--radius); padding:1.5rem;
+      box-shadow:3px 3px 0 var(--border);
+      transition:transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      display:flex; flex-direction:column; gap:0.6rem;
+      cursor:pointer; text-decoration:none;
+    }
+    .article-card:hover { transform:translate(-2px,-2px); box-shadow:var(--card-shadow); border-color:var(--green); }
+    .article-cat { font-family:var(--font-code); font-size:0.63rem; color:var(--green); letter-spacing:0.12em; font-weight:600; }
+    .article-card h3 { font-family:var(--font-head); font-size:1rem; font-weight:700; color:var(--ink); line-height:1.35; }
+    .article-card p  { font-size:0.85rem; color:var(--ink-2); line-height:1.65; flex:1; }
+    .article-footer { display:flex; align-items:center; justify-content:space-between; margin-top:0.2rem; }
+    .article-read { font-family:var(--font-code); font-size:0.68rem; color:var(--ink-3); }
+    .read-more {
+      color:var(--green); font-size:0.78rem; font-weight:700;
+      display:flex; align-items:center; gap:4px; transition:gap 0.2s; font-family:var(--font-body);
+    }
+    .article-card:hover .read-more { gap:8px; }
+
+    /* ─── EVENTS ────────────────────────────────── */
+    #events { padding:7rem 0; }
+    .events-list { display:flex; flex-direction:column; gap:1rem; margin-top:3rem; }
+    .event-row {
+      background:var(--surface); border:2px solid var(--border);
+      border-radius:var(--radius); padding:1.5rem 2rem;
+      display:flex; align-items:center; gap:2rem;
+      box-shadow:3px 3px 0 var(--border);
+      transition:transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    }
+    .event-row:hover { transform:translate(-2px,-2px); box-shadow:var(--card-shadow); border-color:var(--green); }
+    .event-date-badge {
+      min-width:62px; text-align:center; background:var(--green-xs);
+      border:1.5px solid var(--green-lt); border-radius:var(--radius-sm);
+      padding:10px 8px; flex-shrink:0;
+    }
+    .event-date-badge .month { font-family:var(--font-code); font-size:0.6rem; color:var(--green); font-weight:600; letter-spacing:0.08em; display:block; }
+    .event-date-badge .day   { font-family:var(--font-head); font-size:1.6rem; font-weight:700; color:var(--ink); line-height:1; }
+    .event-info { flex:1; min-width:0; }
+    .event-type { font-family:var(--font-code); font-size:0.62rem; color:var(--ink-3); letter-spacing:0.1em; margin-bottom:3px; }
+    .event-info h3 { font-family:var(--font-head); font-size:1.05rem; font-weight:700; color:var(--ink); margin-bottom:3px; }
+    .event-info p  { font-size:0.85rem; color:var(--ink-2); }
+    .event-cta {
+      font-family:var(--font-body); font-weight:700; font-size:0.82rem;
+      color:var(--green); background:var(--green-xs);
+      border:1.5px solid var(--green-lt); border-radius:var(--radius-sm);
+      padding:9px 18px; text-decoration:none; white-space:nowrap; flex-shrink:0;
+      box-shadow:2px 2px 0 var(--green-lt);
+      transition:background 0.18s, color 0.18s, border-color 0.18s, transform 0.15s, box-shadow 0.15s;
+    }
+    .event-cta:hover { background:var(--green); color:#fff; border-color:var(--green); transform:translate(-1px,-1px); box-shadow:3px 3px 0 var(--ink); }
+
+    /* ─── CTA ───────────────────────────────────── */
+    #community { padding:7rem 0; }
+    .cta-box {
+      background:var(--green); border:2px solid var(--ink);
+      border-radius:var(--radius-lg); padding:4.5rem 3rem;
+      text-align:center; position:relative; overflow:hidden;
+      box-shadow:6px 6px 0 var(--ink);
+    }
+    .cta-box::before {
+      content:''; position:absolute; inset:0;
+      background:repeating-linear-gradient(-45deg,rgba(255,255,255,0.06) 0,rgba(255,255,255,0.06) 2px,transparent 2px,transparent 24px);
+      pointer-events:none;
+    }
+    .cta-code {
+      display:inline-block; background:rgba(0,0,0,0.22); color:#a7f3d0;
+      font-family:var(--font-code); font-size:0.8rem;
+      padding:8px 18px; border-radius:8px; margin-bottom:1.5rem;
+    }
+    .cta-box h2 {
+      font-family:var(--font-head); font-size:clamp(1.8rem,5vw,2.8rem);
+      font-weight:700; color:#fff; line-height:1.2; letter-spacing:0.01em; margin-bottom:1rem;
+    }
+    .cta-box p { color:rgba(255,255,255,0.82); font-size:1rem; max-width:440px; margin:0 auto 2.2rem; line-height:1.7; font-weight:500; }
+    .btn-white { background:#fff; color:var(--green); border:2px solid #fff; box-shadow:4px 4px 0 rgba(0,0,0,0.18); }
+    .btn-white:hover { transform:translate(-2px,-2px); box-shadow:6px 6px 0 rgba(0,0,0,0.18); }
+
+    /* ─── FOOTER ────────────────────────────────── */
+    footer { background:var(--ink); color:rgba(255,255,255,0.55); padding:3.5rem 2rem; }
+    .footer-inner { max-width:1080px; margin:0 auto; display:grid; grid-template-columns:1fr auto; gap:2rem; align-items:start; }
+    .footer-brand img { height:28px; filter:brightness(0) invert(1); opacity:0.8; margin-bottom:0.8rem; display:block; }
+    .footer-brand p { font-size:0.82rem; line-height:1.65; max-width:300px; }
+    .social-grid { display:flex; flex-wrap:wrap; gap:0.55rem; justify-content:flex-end; }
+    .social-link {
+      display:inline-flex; align-items:center; gap:6px;
+      font-family:var(--font-body); font-weight:600; font-size:0.8rem;
+      color:rgba(255,255,255,0.6); text-decoration:none;
+      background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+      border-radius:var(--radius-sm); padding:8px 14px;
+      transition:background 0.2s, color 0.2s, border-color 0.2s, transform 0.15s;
+    }
+    .social-link:hover { background:var(--green); color:#fff; border-color:var(--green); transform:translateY(-2px); }
+    .footer-bottom {
+      max-width:1080px; margin:2rem auto 0; padding-top:1.5rem;
+      border-top:1px solid rgba(255,255,255,0.08);
+      font-size:0.74rem; display:flex; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;
+    }
+    .footer-bottom a { color:var(--green-mid); text-decoration:none; }
+
+    /* ─── RESPONSIVE ────────────────────────────── */
+    @media (max-width:768px) {
+      .hero-layout { grid-template-columns:1fr; }
+      .hero-text { text-align:center; }
+      .hero-sub { margin:0 auto 2.5rem; }
+      .hero-btns { justify-content:center; }
+      .hero-art { order:-1; }
+      .hero-art svg { width:200px !important; }
+    }
+    @media (max-width:640px) {
+      .nav-links { display:none; }
+      nav { padding:0 1.2rem; }
+      .about-grid, .articles-cols { grid-template-columns:1fr; }
+      .stats-strip { grid-template-columns:repeat(2,1fr); }
+      .event-row { flex-direction:column; align-items:flex-start; gap:1rem; }
+      .footer-inner { grid-template-columns:1fr; }
+      .social-grid { justify-content:flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ───── NAV ───────────────────────────────────── -->
+<nav id="navbar">
+  <div class="nav-logo"><img src="./codoko.png" alt="Codoko"/></div>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#articles">Articles</a></li>
+    <li><a href="#events">Events</a></li>
+  </ul>
+  <a href="#community" class="nav-cta">Join Community</a>
+</nav>
+
+
+<!-- ───── HERO ──────────────────────────────────── -->
+<section id="hero">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <!-- Floating shapes -->
+  <div class="float-shape" style="top:22%;left:4%;animation-duration:7s;"><div class="shape-diamond"></div></div>
+  <div class="float-shape" style="bottom:28%;left:6%;animation-duration:9s;animation-delay:-3s;"><div class="shape-square"></div></div>
+  <div class="float-shape" style="bottom:22%;right:5%;animation-duration:10s;animation-delay:-1s;"><div class="shape-circle"></div></div>
+
+  <!-- Particle system -->
+  <div id="hero-particles"></div>
+
+  <div class="hero-layout">
+    <!-- TEXT column -->
+    <div class="hero-text">
+      <div class="hero-badge">
+        <div class="hero-badge-dot"></div>
+        Student-born &nbsp;·&nbsp; Open to all &nbsp;·&nbsp; Always building
+      </div>
+
+      <img src="./codoko.png" alt="Codoko" style="height:38px;margin-bottom:1.5rem;filter:drop-shadow(0 4px 12px rgba(24,168,74,0.2));display:block;"/>
+
+      <h1 class="hero-headline">
+        Where students <em>build</em>,<br/>write &amp; teach together.
+      </h1>
+
+      <p class="hero-sub">
+        Codoko is a coding community born in a CS classroom — now open to everyone.
+        We ship projects, write articles, review research, and run workshops.
+      </p>
+
+      <div class="hero-btns">
+        <a href="#community" class="btn btn-solid">💬 Join on Discord</a>
+        <a href="#projects" class="btn btn-outline">See our work →</a>
+      </div>
+    </div>
+
+    <!-- CHARACTER column — BYTE the coder -->
+    <div class="hero-art">
+      <!--
+        BYTE — original SVG illustration, hand-coded.
+        A round-headed coder character sitting behind a laptop.
+        100% original artwork — no third-party IP.
+      -->
+      <svg viewBox="0 0 220 260" style="width:320px;height:auto" xmlns="http://www.w3.org/2000/svg" aria-label="Byte, the Codoko coder mascot">
+        <defs>
+          <filter id="byte-shadow" x="-20%" y="-10%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="rgba(24,168,74,0.2)"/>
+          </filter>
+          <radialGradient id="screen-glow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#22c55e" stop-opacity="0.15"/>
+            <stop offset="100%" stop-color="#22c55e" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+
+        <g class="char-float" filter="url(#byte-shadow)">
+
+          <!-- ── Laptop base / keyboard ── -->
+          <rect x="30" y="210" width="160" height="18" rx="6" fill="#94a3b8" stroke="#0d1f14" stroke-width="2.5"/>
+          <rect x="76" y="214" width="68" height="10" rx="3" fill="#7c8fa1"/>
+
+          <!-- ── Laptop screen casing ── -->
+          <rect x="34" y="128" width="152" height="92" rx="10" fill="#1e293b" stroke="#0d1f14" stroke-width="2.5"/>
+          <!-- screen glow overlay -->
+          <rect x="34" y="128" width="152" height="92" rx="10" fill="url(#screen-glow)"/>
+          <!-- screen glass -->
+          <rect x="43" y="136" width="134" height="78" rx="5" fill="#0a0f1a"/>
+
+          <!-- Code lines on screen -->
+          <text x="50" y="158" font-size="10" fill="#22c55e" font-family="monospace" opacity="0.95">const codoko = {</text>
+          <text x="50" y="173" font-size="10" fill="#93c5fd" font-family="monospace" opacity="0.9">  vibe: "building"</text>
+          <text x="50" y="188" font-size="10" fill="#f9a8d4" font-family="monospace" opacity="0.9">  crew: "awesome"</text>
+          <text x="50" y="203" font-size="10" fill="#86efac" font-family="monospace" opacity="0.8">}</text>
+          <!-- Blinking cursor -->
+          <rect x="50" y="195" width="6" height="10" rx="1" fill="#22c55e">
+            <animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;0.4;0.5;0.9;1" dur="1.1s" repeatCount="indefinite"/>
+          </rect>
+          <!-- Camera dot -->
+          <circle cx="110" cy="133" r="3" fill="#334155"/>
+          <circle cx="110" cy="133" r="1.5" fill="#475569"/>
+
+          <!-- ── Left arm ── -->
+          <path d="M 78 134 C 60 158 44 182 34 210" stroke="#0d1f14" stroke-width="22" fill="none" stroke-linecap="round"/>
+          <path d="M 78 134 C 60 158 44 182 34 210" stroke="#bbf7d0" stroke-width="18" fill="none" stroke-linecap="round"/>
+
+          <!-- ── Right arm ── -->
+          <path d="M 142 134 C 160 158 176 182 186 210" stroke="#0d1f14" stroke-width="22" fill="none" stroke-linecap="round"/>
+          <path d="M 142 134 C 160 158 176 182 186 210" stroke="#bbf7d0" stroke-width="18" fill="none" stroke-linecap="round"/>
+
+          <!-- ── Head ── -->
+          <circle cx="110" cy="76" r="58" fill="#bbf7d0" stroke="#0d1f14" stroke-width="3"/>
+
+          <!-- Hair -->
+          <path d="M 54 56 Q 60 14 110 12 Q 160 14 166 56 Q 148 32 110 30 Q 72 32 54 56 Z" fill="#2d1b4e"/>
+          <!-- Hair highlight -->
+          <path d="M 90 14 Q 110 10 128 16 Q 115 12 110 12 Q 100 11 90 14Z" fill="#3d2d6e" opacity="0.5"/>
+
+          <!-- Ears -->
+          <ellipse cx="52" cy="78" rx="11" ry="14" fill="#bbf7d0" stroke="#0d1f14" stroke-width="2.5"/>
+          <ellipse cx="168" cy="78" rx="11" ry="14" fill="#bbf7d0" stroke="#0d1f14" stroke-width="2.5"/>
+          <!-- Inner ear -->
+          <ellipse cx="52" cy="78" rx="5" ry="7" fill="#a7f3d0"/>
+          <ellipse cx="168" cy="78" rx="5" ry="7" fill="#a7f3d0"/>
+
+          <!-- ── Left eye ── -->
+          <ellipse cx="90" cy="76" rx="13" ry="13" fill="white" stroke="#0d1f14" stroke-width="2.2"/>
+          <ellipse cx="90" cy="76" rx="13" ry="13" fill="white" stroke="none">
+            <animate attributeName="ry" values="13;13;13;0.5;13;13" keyTimes="0;0.7;0.78;0.84;0.9;1" dur="4.5s" repeatCount="indefinite" calcMode="spline" keySplines="0 0 1 1;0 0 1 1;0.5 0 0.5 1;0.5 0 0.5 1;0 0 1 1"/>
+          </ellipse>
+          <circle cx="92" cy="77" r="7" fill="#2d1b4e"/>
+          <circle cx="95" cy="73" r="2.5" fill="white"/>
+          <!-- Eyelid closes on blink -->
+          <ellipse cx="90" cy="76" rx="14" ry="14" fill="#bbf7d0" stroke="none">
+            <animate attributeName="ry" values="0;0;0;13.5;0;0" keyTimes="0;0.7;0.78;0.84;0.9;1" dur="4.5s" repeatCount="indefinite"/>
+          </ellipse>
+
+          <!-- ── Right eye ── -->
+          <ellipse cx="130" cy="76" rx="13" ry="13" fill="white" stroke="#0d1f14" stroke-width="2.2"/>
+          <ellipse cx="130" cy="76" rx="13" ry="13" fill="white" stroke="none">
+            <animate attributeName="ry" values="13;13;13;0.5;13;13" keyTimes="0;0.7;0.78;0.84;0.9;1" dur="4.5s" repeatCount="indefinite" calcMode="spline" keySplines="0 0 1 1;0 0 1 1;0.5 0 0.5 1;0.5 0 0.5 1;0 0 1 1"/>
+          </ellipse>
+          <circle cx="132" cy="77" r="7" fill="#2d1b4e"/>
+          <circle cx="135" cy="73" r="2.5" fill="white"/>
+          <ellipse cx="130" cy="76" rx="14" ry="14" fill="#bbf7d0" stroke="none">
+            <animate attributeName="ry" values="0;0;0;13.5;0;0" keyTimes="0;0.7;0.78;0.84;0.9;1" dur="4.5s" repeatCount="indefinite"/>
+          </ellipse>
+
+          <!-- Smile -->
+          <path d="M 93 96 Q 110 114 127 96" fill="none" stroke="#0d1f14" stroke-width="3" stroke-linecap="round"/>
+          <!-- Smile fill -->
+          <path d="M 93 96 Q 110 114 127 96 Q 110 108 93 96Z" fill="rgba(251,113,133,0.12)"/>
+
+          <!-- Blush -->
+          <ellipse cx="74" cy="92" rx="13" ry="8" fill="rgba(251,113,133,0.25)"/>
+          <ellipse cx="146" cy="92" rx="13" ry="8" fill="rgba(251,113,133,0.25)"/>
+
+          <!-- ── Headphones ── -->
+          <path d="M 53 62 Q 56 22 110 20 Q 164 22 167 62" fill="none" stroke="#2d1b4e" stroke-width="5" stroke-linecap="round"/>
+          <rect x="44" y="62" width="16" height="22" rx="6" fill="#2d1b4e"/>
+          <rect x="160" y="62" width="16" height="22" rx="6" fill="#2d1b4e"/>
+          <rect x="47" y="65" width="10" height="16" rx="4" fill="#818cf8"/>
+          <rect x="163" y="65" width="10" height="16" rx="4" fill="#818cf8"/>
+
+        </g><!-- end shadow group -->
+
+        <!-- ── Coffee cup (outside shadow, floats separately) ── -->
+        <g style="animation:charFloat 3.5s ease-in-out 1s infinite alternate">
+          <g transform="translate(174, 44)">
+            <rect x="0" y="10" width="26" height="28" rx="6" fill="white" stroke="#0d1f14" stroke-width="2"/>
+            <path d="M 26 16 Q 36 16 36 24 Q 36 32 26 32" fill="none" stroke="#0d1f14" stroke-width="2" stroke-linecap="round"/>
+            <rect x="0" y="10" width="26" height="8" rx="5" fill="#fde68a" stroke="#0d1f14" stroke-width="1.5"/>
+            <!-- Logo on cup -->
+            <circle cx="13" cy="24" r="7" fill="none" stroke="#22c55e" stroke-width="1.5" opacity="0.5"/>
+            <!-- Steam -->
+            <path d="M 7 9 Q 10 3 7 -2" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round">
+              <animate attributeName="opacity" values="0.7;0.2;0.7" dur="1.6s" repeatCount="indefinite"/>
+              <animate attributeName="d" values="M 7 9 Q 10 3 7 -2;M 7 9 Q 4 3 7 -2;M 7 9 Q 10 3 7 -2" dur="1.6s" repeatCount="indefinite"/>
+            </path>
+            <path d="M 16 7 Q 19 1 16 -4" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round">
+              <animate attributeName="opacity" values="0.2;0.7;0.2" dur="1.3s" repeatCount="indefinite"/>
+              <animate attributeName="d" values="M 16 7 Q 19 1 16 -4;M 16 7 Q 13 1 16 -4;M 16 7 Q 19 1 16 -4" dur="1.3s" repeatCount="indefinite"/>
+            </path>
+          </g>
+        </g>
+      </svg>
+    </div><!-- end hero-art -->
+  </div><!-- end hero-layout -->
+</section>
+
+
+<!-- ───── MARQUEE ────────────────────────────────── -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <div class="marquee-item"><span>✦</span> Build Projects</div>
+    <div class="marquee-item"><span>✦</span> Write Articles</div>
+    <div class="marquee-item"><span>✦</span> Research Reviews</div>
+    <div class="marquee-item"><span>✦</span> Run Workshops</div>
+    <div class="marquee-item"><span>✦</span> Community First</div>
+    <div class="marquee-item"><span>✦</span> Open Source</div>
+    <div class="marquee-item"><span>✦</span> Learn Together</div>
+    <div class="marquee-item"><span>✦</span> Science &amp; CS</div>
+    <div class="marquee-item"><span>✦</span> No Gatekeeping</div>
+    <div class="marquee-item"><span>✦</span> Discord Hub</div>
+    <!-- duplicate for seamless loop -->
+    <div class="marquee-item"><span>✦</span> Build Projects</div>
+    <div class="marquee-item"><span>✦</span> Write Articles</div>
+    <div class="marquee-item"><span>✦</span> Research Reviews</div>
+    <div class="marquee-item"><span>✦</span> Run Workshops</div>
+    <div class="marquee-item"><span>✦</span> Community First</div>
+    <div class="marquee-item"><span>✦</span> Open Source</div>
+    <div class="marquee-item"><span>✦</span> Learn Together</div>
+    <div class="marquee-item"><span>✦</span> Science &amp; CS</div>
+    <div class="marquee-item"><span>✦</span> No Gatekeeping</div>
+    <div class="marquee-item"><span>✦</span> Discord Hub</div>
+  </div>
+</div>
+
+
+<!-- ───── ABOUT ──────────────────────────────────── -->
+<section id="about">
+  <div class="container">
+    <!-- Section header + GIZMO the robot floating to the right -->
+    <div style="position:relative">
+      <div class="reveal">
+        <div class="section-eyebrow">Who we are</div>
+        <h2 class="section-title">Code. Write.<br/>Teach. Repeat.</h2>
+      </div>
+
+      <!-- GIZMO — original robot SVG illustration -->
+      <div style="position:absolute;right:-30px;top:-20px;pointer-events:none;" class="reveal reveal-delay-2">
+        <svg viewBox="0 0 130 170" style="width:130px;height:auto" xmlns="http://www.w3.org/2000/svg" aria-label="Gizmo, a friendly robot character">
+          <g class="char-float-med" filter="url(#byte-shadow)">
+
+            <!-- Antenna -->
+            <line x1="65" y1="10" x2="65" y2="36" stroke="#0d1f14" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="65" cy="8" r="7" fill="#f472b6" stroke="#0d1f14" stroke-width="2">
+              <animate attributeName="cy" values="8;5;8" dur="1.2s" repeatCount="indefinite" ease="ease-in-out"/>
+            </circle>
+
+            <!-- Head -->
+            <rect x="30" y="36" width="70" height="58" rx="16" fill="#bbf7d0" stroke="#0d1f14" stroke-width="2.5"/>
+
+            <!-- Eye panel -->
+            <rect x="36" y="48" width="58" height="26" rx="8" fill="#0f172a" stroke="#0d1f14" stroke-width="1.5"/>
+
+            <!-- Left LED eye -->
+            <rect x="41" y="54" width="18" height="14" rx="4" fill="#22c55e">
+              <animate attributeName="fill" values="#22c55e;#86efac;#22c55e" dur="2.4s" repeatCount="indefinite"/>
+            </rect>
+            <!-- Right LED eye -->
+            <rect x="71" y="54" width="18" height="14" rx="4" fill="#22c55e">
+              <animate attributeName="fill" values="#22c55e;#86efac;#22c55e" dur="2.4s" begin="-1.2s" repeatCount="indefinite"/>
+            </rect>
+
+            <!-- Mouth / speaker grille -->
+            <rect x="42" y="80" width="46" height="8" rx="4" fill="#0f172a" stroke="#0d1f14" stroke-width="1.5"/>
+            <line x1="50" y1="80" x2="50" y2="88" stroke="#22c55e" stroke-width="1.5"/>
+            <line x1="58" y1="80" x2="58" y2="88" stroke="#22c55e" stroke-width="1.5"/>
+            <line x1="66" y1="80" x2="66" y2="88" stroke="#22c55e" stroke-width="1.5"/>
+            <line x1="74" y1="80" x2="74" y2="88" stroke="#22c55e" stroke-width="1.5"/>
+
+            <!-- Body -->
+            <rect x="22" y="100" width="86" height="56" rx="14" fill="#bbf7d0" stroke="#0d1f14" stroke-width="2.5"/>
+
+            <!-- Chest panel -->
+            <rect x="32" y="108" width="66" height="38" rx="8" fill="#e8fdf0" stroke="#c6ebd4" stroke-width="1.5"/>
+            <!-- Chest buttons -->
+            <circle cx="48" cy="122" r="6" fill="#fbbf24" stroke="#0d1f14" stroke-width="1.5"/>
+            <circle cx="65" cy="122" r="6" fill="#f472b6" stroke="#0d1f14" stroke-width="1.5"/>
+            <circle cx="82" cy="122" r="6" fill="#60a5fa" stroke="#0d1f14" stroke-width="1.5"/>
+            <!-- Vent slots -->
+            <line x1="42" y1="136" x2="88" y2="136" stroke="#c6ebd4" stroke-width="2"/>
+            <line x1="42" y1="141" x2="88" y2="141" stroke="#c6ebd4" stroke-width="2"/>
+
+            <!-- Left arm -->
+            <rect x="4" y="104" width="20" height="40" rx="10" fill="#bbf7d0" stroke="#0d1f14" stroke-width="2.5"/>
+            <circle cx="14" cy="148" r="9" fill="#a7f3d0" stroke="#0d1f14" stroke-width="2"/>
+
+            <!-- Right arm -->
+            <rect x="106" y="104" width="20" height="40" rx="10" fill="#bbf7d0" stroke="#0d1f14" stroke-width="2.5"/>
+            <circle cx="116" cy="148" r="9" fill="#a7f3d0" stroke="#0d1f14" stroke-width="2"/>
+
+            <!-- Feet / rollers -->
+            <ellipse cx="44" cy="158" rx="16" ry="10" fill="#94a3b8" stroke="#0d1f14" stroke-width="2"/>
+            <ellipse cx="86" cy="158" rx="16" ry="10" fill="#94a3b8" stroke="#0d1f14" stroke-width="2"/>
+            <circle cx="44" cy="158" r="5" fill="#64748b"/>
+            <circle cx="86" cy="158" r="5" fill="#64748b"/>
+
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <div class="about-grid">
+      <div class="about-card reveal reveal-delay-1">
+        <div class="card-icon-wrap">⚙️</div>
+        <h3>Build Projects</h3>
+        <p>We collaborate on real software — from tools and apps to experiments and open-source contributions. Idea to deploy, together.</p>
+      </div>
+      <div class="about-card reveal reveal-delay-2">
+        <div class="card-icon-wrap">📝</div>
+        <h3>Write Articles</h3>
+        <p>Members publish technical articles, dev logs, and explainers. Writing sharpens what we know and spreads it further.</p>
+      </div>
+      <div class="about-card reveal reveal-delay-3">
+        <div class="card-icon-wrap">🔬</div>
+        <h3>Research Reviews</h3>
+        <p>We read papers, books, and studies — then break them down. Accessible reviews of CS, AI, and science for curious minds.</p>
+      </div>
+      <div class="about-card reveal reveal-delay-4">
+        <div class="card-icon-wrap">🎯</div>
+        <h3>Teach &amp; Grow</h3>
+        <p>We run events and workshops for students and curious people. Everyone was a beginner once — we haven't forgotten that.</p>
+      </div>
+    </div>
+
+    <div class="stats-strip reveal">
+      <div class="stat-tile"><span class="stat-num">CS</span><div class="stat-label">Origin degree</div></div>
+      <div class="stat-tile"><span class="stat-num">∞</span><div class="stat-label">Projects shipped</div></div>
+      <div class="stat-tile"><span class="stat-num">0</span><div class="stat-label">Paywalls</div></div>
+      <div class="stat-tile"><span class="stat-num">100%</span><div class="stat-label">Community-driven</div></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── PROJECTS ───────────────────────────────── -->
+<section id="projects">
+  <div class="container">
+    <div class="reveal" style="display:flex;align-items:flex-start;gap:1.5rem;flex-wrap:wrap">
+      <div>
+        <div class="section-eyebrow">What we build</div>
+        <h2 class="section-title">Our Projects</h2>
+      </div>
+    </div>
+
+    <div class="projects-grid">
+      <div class="project-card reveal reveal-delay-1">
+        <div class="project-thumb">⚙️</div>
+        <div class="project-body">
+          <div class="project-chips"><span class="chip">Open Source</span></div>
+          <h3>Community Tooling</h3>
+          <p>Internal tools built by members, for members. Discord bots, dashboards, and productivity hacks — all in-house.</p>
+          <div class="project-chips"><span class="chip yellow">Python</span><span class="chip blue">Discord API</span></div>
+        </div>
+      </div>
+      <div class="project-card reveal reveal-delay-2">
+        <div class="project-thumb">🤖</div>
+        <div class="project-body">
+          <div class="project-chips"><span class="chip">Research</span></div>
+          <h3>Research Lab</h3>
+          <p>Experimental projects inspired by papers and curiosity. We prototype academic ideas into running code.</p>
+          <div class="project-chips"><span class="chip yellow">ML / AI</span><span class="chip blue">Data</span></div>
+        </div>
+      </div>
+      <div class="project-card reveal reveal-delay-3">
+        <div class="project-thumb">✨</div>
+        <div class="project-body">
+          <div class="project-chips"><span class="chip pink">Your idea</span></div>
+          <h3>Your Next Project</h3>
+          <p>Got something brewing? Bring it to the community — we help you scope, build, and ship it together.</p>
+          <div class="project-chips"><span class="chip">Collaborative</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── ARTICLES ───────────────────────────────── -->
+<section id="articles">
+  <div class="container">
+    <div class="articles-header reveal">
+      <div style="position:relative">
+        <div class="section-eyebrow">What we write</div>
+        <h2 class="section-title">Articles &amp; Reviews</h2>
+
+        <!-- QUILL — original reader/writer character -->
+        <div style="position:absolute;right:-170px;bottom:-20px;pointer-events:none">
+          <svg viewBox="0 0 150 170" style="width:140px;height:auto" xmlns="http://www.w3.org/2000/svg" aria-label="Quill, a bookworm character with big glasses">
+            <g class="char-float-slow">
+
+              <!-- Book (behind character, tilted) -->
+              <g transform="rotate(-12,75,130) translate(10,118)">
+                <!-- Left page -->
+                <rect x="0" y="0" width="44" height="52" rx="3" fill="#fff" stroke="#0d1f14" stroke-width="2"/>
+                <!-- Right page -->
+                <rect x="44" y="0" width="44" height="52" rx="3" fill="#f8fafc" stroke="#0d1f14" stroke-width="2"/>
+                <!-- Spine -->
+                <rect x="42" y="0" width="4" height="52" fill="#bbf7d0" stroke="#0d1f14" stroke-width="1"/>
+                <!-- Lines on left page -->
+                <line x1="6"  y1="12" x2="38" y2="12" stroke="#c6ebd4" stroke-width="1.5"/>
+                <line x1="6"  y1="19" x2="38" y2="19" stroke="#c6ebd4" stroke-width="1.5"/>
+                <line x1="6"  y1="26" x2="32" y2="26" stroke="#c6ebd4" stroke-width="1.5"/>
+                <line x1="6"  y1="33" x2="38" y2="33" stroke="#c6ebd4" stroke-width="1.5"/>
+                <line x1="6"  y1="40" x2="28" y2="40" stroke="#c6ebd4" stroke-width="1.5"/>
+                <!-- Lines on right page -->
+                <line x1="50" y1="12" x2="82" y2="12" stroke="#c6ebd4" stroke-width="1.5"/>
+                <line x1="50" y1="19" x2="82" y2="19" stroke="#c6ebd4" stroke-width="1.5"/>
+                <line x1="50" y1="26" x2="76" y2="26" stroke="#c6ebd4" stroke-width="1.5"/>
+                <line x1="50" y1="33" x2="82" y2="33" stroke="#c6ebd4" stroke-width="1.5"/>
+                <line x1="50" y1="40" x2="70" y2="40" stroke="#c6ebd4" stroke-width="1.5"/>
+              </g>
+
+              <!-- Body stub -->
+              <ellipse cx="75" cy="130" rx="36" ry="28" fill="#bbf7d0" stroke="#0d1f14" stroke-width="2.5"/>
+
+              <!-- Left mini arm -->
+              <ellipse cx="38" cy="130" rx="12" ry="9" fill="#bbf7d0" stroke="#0d1f14" stroke-width="2" transform="rotate(-20,38,130)"/>
+              <!-- Right mini arm -->
+              <ellipse cx="112" cy="130" rx="12" ry="9" fill="#bbf7d0" stroke="#0d1f14" stroke-width="2" transform="rotate(20,112,130)"/>
+
+              <!-- Head -->
+              <circle cx="75" cy="66" r="48" fill="#bbf7d0" stroke="#0d1f14" stroke-width="2.8"/>
+
+              <!-- Hair (wavy bun style) -->
+              <path d="M 30 48 Q 38 12 75 10 Q 112 12 120 48 Q 108 28 75 26 Q 42 28 30 48 Z" fill="#2d1b4e"/>
+              <!-- Bun on top -->
+              <circle cx="75" cy="12" r="10" fill="#2d1b4e" stroke="#0d1f14" stroke-width="1.5"/>
+              <circle cx="75" cy="12" r="6"  fill="#3d2d6e"/>
+
+              <!-- Big round glasses -->
+              <!-- Left lens -->
+              <circle cx="60" cy="65" r="17" fill="rgba(224,242,254,0.5)" stroke="#0d1f14" stroke-width="2.5"/>
+              <!-- Right lens -->
+              <circle cx="90" cy="65" r="17" fill="rgba(224,242,254,0.5)" stroke="#0d1f14" stroke-width="2.5"/>
+              <!-- Bridge -->
+              <line x1="77" y1="65" x2="73" y2="65" stroke="#0d1f14" stroke-width="2.5"/>
+              <!-- Arms -->
+              <line x1="43" y1="60" x2="28" y2="56" stroke="#0d1f14" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="107" y1="60" x2="122" y2="56" stroke="#0d1f14" stroke-width="2.5" stroke-linecap="round"/>
+
+              <!-- Eyes behind glasses -->
+              <circle cx="60" cy="65" r="7" fill="white"/>
+              <circle cx="62" cy="66" r="4" fill="#2d1b4e"/>
+              <circle cx="64" cy="64" r="1.5" fill="white"/>
+              <circle cx="90" cy="65" r="7" fill="white"/>
+              <circle cx="92" cy="66" r="4" fill="#2d1b4e"/>
+              <circle cx="94" cy="64" r="1.5" fill="white"/>
+
+              <!-- Smile -->
+              <path d="M 62 84 Q 75 96 88 84" fill="none" stroke="#0d1f14" stroke-width="2.5" stroke-linecap="round"/>
+
+              <!-- Blush -->
+              <ellipse cx="44" cy="80" rx="10" ry="7" fill="rgba(251,113,133,0.22)"/>
+              <ellipse cx="106" cy="80" rx="10" ry="7" fill="rgba(251,113,133,0.22)"/>
+
+              <!-- Floating pencil above -->
+              <g transform="rotate(30,110,28)" style="animation:charFloat 3s ease-in-out 0.8s infinite alternate">
+                <rect x="104" y="16" width="10" height="38" rx="2" fill="#fbbf24" stroke="#0d1f14" stroke-width="1.5"/>
+                <!-- Pencil tip -->
+                <path d="M 104 54 L 114 54 L 109 62 Z" fill="#f4a105" stroke="#0d1f14" stroke-width="1.2"/>
+                <!-- Pencil eraser -->
+                <rect x="104" y="13" width="10" height="6" rx="2" fill="#f9a8d4" stroke="#0d1f14" stroke-width="1.2"/>
+                <!-- Pencil wood reveal -->
+                <path d="M 106 54 L 109 62 L 112 54" fill="#e8c84a"/>
+              </g>
+
+            </g>
+          </svg>
+        </div>
+      </div>
+      <a href="#" class="btn btn-outline" style="align-self:flex-end;flex-shrink:0">Browse all →</a>
+    </div>
+
+    <div class="articles-cols">
+      <a href="#" class="article-card reveal reveal-delay-1">
+        <div class="article-cat">TUTORIAL</div>
+        <h3>How We Built Our First Open-Source Tool</h3>
+        <p>A behind-the-scenes look at the decisions, mistakes, and wins that shaped the build — and what we'd do differently.</p>
+        <div class="article-footer"><span class="article-read">5 min read</span><div class="read-more">Read more <span>→</span></div></div>
+      </a>
+      <a href="#" class="article-card reveal reveal-delay-2">
+        <div class="article-cat">PAPER REVIEW</div>
+        <h3>Reading "Attention Is All You Need" — What It Actually Means</h3>
+        <p>We break down the landmark Transformer paper for students, skipping the jargon and focusing on intuition.</p>
+        <div class="article-footer"><span class="article-read">8 min read</span><div class="read-more">Read more <span>→</span></div></div>
+      </a>
+      <a href="#" class="article-card reveal reveal-delay-3">
+        <div class="article-cat">OPINION</div>
+        <h3>Why Every CS Student Should Build Something Useless</h3>
+        <p>On side projects, creative coding, and why the best learning happens with no grade attached.</p>
+        <div class="article-footer"><span class="article-read">4 min read</span><div class="read-more">Read more <span>→</span></div></div>
+      </a>
+      <a href="#" class="article-card reveal reveal-delay-4">
+        <div class="article-cat">RESEARCH NOTES</div>
+        <h3>Small Experiments in Algorithm Design — A Student's Log</h3>
+        <p>Notes from exploring classic algorithms, reimplementing them from scratch, and discovering why they work so well.</p>
+        <div class="article-footer"><span class="article-read">6 min read</span><div class="read-more">Read more <span>→</span></div></div>
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── EVENTS ──────────────────────────────────── -->
+<section id="events">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-eyebrow">What we run</div>
+      <h2 class="section-title">Events &amp; Workshops</h2>
+    </div>
+    <div class="events-list">
+      <div class="event-row reveal reveal-delay-1">
+        <div class="event-date-badge"><span class="month">APR</span><span class="day">12</span></div>
+        <div class="event-info">
+          <div class="event-type">WORKSHOP · BEGINNER FRIENDLY</div>
+          <h3>Intro to Web Development</h3>
+          <p>Hands-on session covering HTML, CSS, and JavaScript basics. Bring your laptop — we'll build something together.</p>
+        </div>
+        <a href="#community" class="event-cta">Register →</a>
+      </div>
+      <div class="event-row reveal reveal-delay-2">
+        <div class="event-date-badge"><span class="month">MAY</span><span class="day">03</span></div>
+        <div class="event-info">
+          <div class="event-type">HACKATHON · 48 HOURS</div>
+          <h3>Build Something in 48h</h3>
+          <p>Form a team, pick a problem, ship a working prototype in 48 hours. Judged by the community itself.</p>
+        </div>
+        <a href="#community" class="event-cta">Join a team →</a>
+      </div>
+      <div class="event-row reveal reveal-delay-3">
+        <div class="event-date-badge"><span class="month">EVERY</span><span class="day" style="font-size:1.1rem;line-height:1.5;">MO.</span></div>
+        <div class="event-info">
+          <div class="event-type">STUDY SESSION · RECURRING</div>
+          <h3>Paper Club</h3>
+          <p>We pick one CS or science paper a month and discuss it on Discord. No expertise required — just curiosity.</p>
+        </div>
+        <a href="#community" class="event-cta">Join club →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── CTA ─────────────────────────────────────── -->
+<section id="community" style="padding:7rem 0">
+  <div class="container">
+    <div class="cta-box reveal" style="position:relative;overflow:hidden">
+      <div class="cta-code">$ git clone codoko/community &amp;&amp; cd in</div>
+      <h2>Ready to be part<br/>of something real?</h2>
+      <p>We hang out, collaborate, and build on Discord. Join the server — students, grads, hobbyists, and pros all welcome.</p>
+      <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+        <a href="YOUR_DISCORD_INVITE_LINK" class="btn btn-white">💬 Join on Discord</a>
+      </div>
+
+      <!-- HYPE — waving character in the CTA box -->
+      <div style="position:absolute;right:40px;bottom:0;pointer-events:none" class="reveal reveal-delay-3">
+        <svg viewBox="0 0 130 175" style="width:120px;height:auto" xmlns="http://www.w3.org/2000/svg" aria-label="Hype, an excited waving character">
+          <g>
+            <!-- Body -->
+            <ellipse cx="65" cy="138" rx="40" ry="30" fill="rgba(255,255,255,0.25)" stroke="rgba(255,255,255,0.6)" stroke-width="2.5"/>
+
+            <!-- Left arm (down) -->
+            <path d="M 28 130 C 18 138 12 148 14 160" stroke="rgba(255,255,255,0.6)" stroke-width="18" fill="none" stroke-linecap="round"/>
+            <path d="M 28 130 C 18 138 12 148 14 160" stroke="rgba(255,255,255,0.25)" stroke-width="14" fill="none" stroke-linecap="round"/>
+
+            <!-- Right arm (waving up — animated) -->
+            <g style="transform-origin:96px 115px;animation:waveArm 1.2s ease-in-out infinite alternate">
+              <path d="M 96 115 C 108 100 118 88 122 74" stroke="rgba(255,255,255,0.6)" stroke-width="18" fill="none" stroke-linecap="round"/>
+              <path d="M 96 115 C 108 100 118 88 122 74" stroke="rgba(255,255,255,0.25)" stroke-width="14" fill="none" stroke-linecap="round"/>
+              <!-- Hand -->
+              <circle cx="123" cy="72" r="11" fill="rgba(255,255,255,0.35)" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
+              <!-- Fingers -->
+              <circle cx="117" cy="62" r="5" fill="rgba(255,255,255,0.5)" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>
+              <circle cx="126" cy="60" r="5" fill="rgba(255,255,255,0.5)" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>
+              <circle cx="134" cy="65" r="5" fill="rgba(255,255,255,0.5)" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>
+            </g>
+
+            <!-- Head -->
+            <circle cx="65" cy="74" r="50" fill="rgba(255,255,255,0.28)" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"/>
+
+            <!-- Star eyes -->
+            <text x="48" y="72" font-size="20" text-anchor="middle" fill="white">★</text>
+            <text x="82" y="72" font-size="20" text-anchor="middle" fill="white">★</text>
+
+            <!-- Big open smile -->
+            <path d="M 44 88 Q 65 112 86 88" fill="rgba(255,255,255,0.5)" stroke="rgba(255,255,255,0.8)" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- Teeth -->
+            <path d="M 44 88 Q 65 112 86 88 Q 65 104 44 88Z" fill="rgba(255,255,255,0.5)"/>
+
+            <!-- Blush -->
+            <ellipse cx="46" cy="84" rx="10" ry="7" fill="rgba(251,113,133,0.35)"/>
+            <ellipse cx="84" cy="84" rx="10" ry="7" fill="rgba(251,113,133,0.35)"/>
+
+            <!-- Floating stars around Hype -->
+            <text x="8" y="50" font-size="12" fill="rgba(255,230,0,0.8)" style="animation:sparklePop 2s ease-in-out 0s infinite alternate">✦</text>
+            <text x="115" y="40" font-size="10" fill="rgba(255,230,0,0.8)" style="animation:sparklePop 2s ease-in-out 0.6s infinite alternate">✦</text>
+            <text x="5" y="100" font-size="9" fill="rgba(255,255,255,0.7)" style="animation:sparklePop 2s ease-in-out 1.1s infinite alternate">✦</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── FOOTER ──────────────────────────────────── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <img src="./codoko.png" alt="Codoko"/>
+      <p>A coding community built by CS students — open to anyone who loves building, writing, and learning together.</p>
+    </div>
+    <div class="social-grid">
+      <a href="YOUR_GITHUB_LINK"    class="social-link">🐙 GitHub</a>
+      <a href="YOUR_TWITTER_LINK"   class="social-link">𝕏 Twitter</a>
+      <a href="YOUR_INSTAGRAM_LINK" class="social-link">📸 Instagram</a>
+      <a href="YOUR_LINKEDIN_LINK"  class="social-link">💼 LinkedIn</a>
+      <a href="YOUR_YOUTUBE_LINK"   class="social-link">▶ YouTube</a>
+      <a href="YOUR_DISCORD_LINK"   class="social-link">💬 Discord</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© <span id="yr"></span> Codoko. Built with ☕ and curiosity.</span>
+    <span>Founded during 2nd year CS &nbsp;·&nbsp; <a href="#">Back to top ↑</a></span>
+  </div>
+</footer>
+
+
+<style>
+  @keyframes waveArm {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(-22deg); }
+  }
+  @keyframes sparklePop {
+    from { transform: scale(0.7) rotate(0deg); opacity: 0.4; }
+    to   { transform: scale(1.3) rotate(30deg); opacity: 1; }
+  }
+</style>
+
+<script>
+  document.getElementById('yr').textContent = new Date().getFullYear();
+
+  /* ─── Sticky nav shadow ─── */
+  const nav = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 20);
+  }, { passive: true });
+
+  /* ─── Scroll reveal ─── */
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  /* ─── Hero particle system ─── */
+  const SYMBOLS = ['</>','{}','=>','[]','&&','||','()','++','//','**','!=','==='];
+  const container = document.getElementById('hero-particles');
+
+  function spawnParticle() {
+    const el = document.createElement('div');
+    el.className = 'hero-particle';
+    el.textContent = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+    const size = 9 + Math.random() * 8;
+    const op   = 0.06 + Math.random() * 0.12;
+    const dur  = 5 + Math.random() * 6;
+    el.style.cssText = `
+      left: ${Math.random() * 100}%;
+      font-size: ${size}px;
+      --op: ${op};
+      animation-duration: ${dur}s;
+    `;
+    container.appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
+  }
+  // Stagger initial spawn
+  for (let i = 0; i < 10; i++) setTimeout(spawnParticle, i * 200);
+  setInterval(spawnParticle, 500);
+
+  /* ─── Hero sparkle stars ─── */
+  const hero = document.getElementById('hero');
+  function spawnSparkle() {
+    const el = document.createElement('div');
+    el.className = 'sparkle-star';
+    el.textContent = ['✦','★','✸','✺','✼'][Math.floor(Math.random() * 5)];
+    el.style.cssText = `
+      left: ${10 + Math.random() * 80}%;
+      top:  ${10 + Math.random() * 80}%;
+      font-size: ${10 + Math.random() * 10}px;
+      animation-duration: ${1.5 + Math.random() * 1.5}s;
+      color: ${['#fbbf24','#22c55e','#60a5fa','#f472b6'][Math.floor(Math.random()*4)]};
+    `;
+    hero.appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
+  }
+  setInterval(spawnSparkle, 800);
+</script>
+</body>
+</html>

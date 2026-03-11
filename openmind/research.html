@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenKnowledge - Free Research Aggregator</title>
+    <style>
+        :root {
+            --bg-color: #f9f9fb;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --primary: #2563eb;
+            --border: #e5e7eb;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 16px;
+            font-size: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 1rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #1d4ed8;
+        }
+
+        /* Results Sections */
+        .results-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .category-section {
+            display: none; /* Hidden until searched */
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .category-section h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--bg-color);
+            color: var(--primary);
+        }
+
+        .result-item {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .result-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .result-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            text-decoration: none;
+            margin-bottom: 0.25rem;
+            display: inline-block;
+        }
+
+        .result-title:hover {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .result-meta {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .loading {
+            text-align: center;
+            color: var(--text-muted);
+            display: none;
+            margin: 2rem 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>OpenKnowledge</h1>
+        <p class="subtitle">Search for free, open-source research papers, articles, and resources.</p>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Enter a topic (e.g., Quantum Computing, Climate Change)..." onkeypress="handleKeyPress(event)">
+            <button onclick="performSearch()">Search</button>
+        </div>
+    </header>
+
+    <div id="loading" class="loading">Gathering free resources...</div>
+
+    <div class="results-container" id="resultsContainer">
+
+        <div class="category-section" id="researchSection">
+            <h2>Research Papers (Open Access)</h2>
+            <div id="researchResults"></div>
+        </div>
+
+        <div class="category-section" id="articleSection">
+            <h2>Encyclopedia & Articles</h2>
+            <div id="articleResults"></div>
+        </div>
+
+        <div class="category-section" id="newsSection">
+            <h2>Latest News</h2>
+            <div id="newsResults"></div>
+        </div>
+
+        <div class="category-section" id="videoSection">
+            <h2>Educational Videos</h2>
+            <div id="videoResults"></div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function handleKeyPress(e) {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    }
+
+    async function performSearch() {
+        const query = document.getElementById('searchInput').value.trim();
+        if (!query) return;
+
+        // UI Setup
+        document.getElementById('loading').style.display = 'block';
+        document.querySelectorAll('.category-section').forEach(el => el.style.display = 'none');
+
+        // Clear previous results
+        document.getElementById('researchResults').innerHTML = '';
+        document.getElementById('articleResults').innerHTML = '';
+        document.getElementById('newsResults').innerHTML = '';
+        document.getElementById('videoResults').innerHTML = '';
+
+        try {
+            // Run fetches concurrently for speed
+            await Promise.all([
+                fetchResearch(query),
+                fetchArticles(query),
+                mockFetchNews(query),
+                mockFetchVideos(query)
+            ]);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            alert("Something went wrong while fetching data. Please try again.");
+        } finally {
+            document.getElementById('loading').style.display = 'none';
+        }
+    }
+
+    // 1. Fetch Free Research Papers from OpenAlex API
+    async function fetchResearch(query) {
+        // filter=is_oa:true ensures we ONLY get Open Access (free) papers
+        const url = `https://api.openalex.org/works?search=${encodeURIComponent(query)}&filter=is_oa:true&per-page=5`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        const container = document.getElementById('researchResults');
+
+        if (data.results && data.results.length > 0) {
+            data.results.forEach(paper => {
+                const title = paper.title || 'Untitled Paper';
+                const author = paper.authorships?.[0]?.author?.display_name || 'Unknown Author';
+                const year = paper.publication_year || 'Unknown Year';
+                // Get the direct PDF link or the landing page link
+                const link = paper.open_access?.oa_url || paper.doi || '#';
+
+                container.innerHTML += `
+                    <div class="result-item">
+                        <a href="${link}" target="_blank" class="result-title">${title}</a>
+                        <div class="result-meta">${author} • Published: ${year}</div>
+                        <div class="result-meta">Source: OpenAlex Database</div>
+                    </div>
+                `;
+            });
+            document.getElementById('researchSection').style.display = 'block';
+        }
+    }
+
+    // 2. Fetch Free Articles from Wikipedia API
+    async function fetchArticles(query) {
+        const url = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&utf8=&format=json&origin=*`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        const container = document.getElementById('articleResults');
+
+        if (data.query && data.query.search.length > 0) {
+            // Take top 5 results
+            const articles = data.query.search.slice(0, 5);
+            articles.forEach(article => {
+                const link = `https://en.wikipedia.org/?curid=${article.pageid}`;
+                container.innerHTML += `
+                    <div class="result-item">
+                        <a href="${link}" target="_blank" class="result-title">${article.title}</a>
+                        <div class="result-meta">${article.snippet}...</div>
+                        <div class="result-meta">Source: Wikipedia</div>
+                    </div>
+                `;
+            });
+            document.getElementById('articleSection').style.display = 'block';
+        }
+    }
+
+    // 3. Mock News API (Replace with NewsAPI.org or similar later)
+    async function mockFetchNews(query) {
+        const container = document.getElementById('newsResults');
+        container.innerHTML = `
+            <div class="result-item">
+                <a href="#" class="result-title">Recent advancements in ${query} announced</a>
+                <div class="result-meta">NewsAPI placeholder • Just now</div>
+                <div class="result-meta">To get real news, register for a free API key at NewsAPI.org and replace this mock function.</div>
+            </div>
+        `;
+        document.getElementById('newsSection').style.display = 'block';
+    }
+
+    // 4. Mock Video API (Replace with YouTube Data API later)
+    async function mockFetchVideos(query) {
+        const container = document.getElementById('videoResults');
+        container.innerHTML = `
+            <div class="result-item">
+                <a href="#" class="result-title">Understanding ${query}: A Complete Guide (Video)</a>
+                <div class="result-meta">YouTube placeholder • 10:24 duration</div>
+                <div class="result-meta">To get real videos, register for a Google Cloud YouTube Data API key and replace this mock function.</div>
+            </div>
+        `;
+        document.getElementById('videoSection').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
